@@ -26,7 +26,7 @@ export const FormClient = () => {
         setClients(respuesta.data);
     }
 
-    const openModal = (op, firstName, LastName, phone, dateOfBirth) =>{
+    const openModal = (op,id, firstName, LastName, phone, dateOfBirth) =>{
         setFirstName('');
         setLastName('');
         setPhone('');
@@ -37,10 +37,14 @@ export const FormClient = () => {
         }
         else if(op === 2 ){
             setTitle('Editar Cliente');
+            setId(id);
             setFirstName(firstName);
             setLastName(LastName);
-            setPhone (phone);
-            setDateOfBirth(dateOfBirth);
+            setPhone(phone);
+            const formattedDate = dateOfBirth
+            ? new Date(dateOfBirth).toISOString().split('T')[0]
+            : '';
+            setDateOfBirth(formattedDate);            
         }
         window.setTimeout(function(){
             document.getElementById('firstName').focus();
@@ -64,34 +68,34 @@ export const FormClient = () => {
         }
         else{
             if(operation === 1){
-            parametros= {firstName:firstName.trim(), lastName:lastName.trim(), phone:phone,dateOfBirth:dateOfBirth};
-            metodo ='POST';
+                const dateOfUpdate = new Date().toISOString().split('T')[0];
+                parametros= {firstName:firstName.trim(), lastName:lastName.trim(), phone:phone,dateOfBirth:dateOfBirth,dateOfUpdate:dateOfUpdate};
+                metodo ='POST';
+                envarSolicitud(metodo, parametros);
             }
             else{
-            parametros={id:id,firstName:firstName.trim(), lastName:lastName.trim(), phone:phone,dateOfBirth:dateOfBirth};
-            metodo ='PATCH';
+                const dateOfUpdate = new Date().toISOString().split('T')[0];
+                parametros={firstName:firstName.trim(), lastName:lastName.trim(), phone:phone,dateOfBirth:dateOfBirth,dateOfUpdate:dateOfUpdate};            
+                updateClient(id,parametros);
+                
             }
-            envarSolicitud(metodo, parametros);
+            
         }
     }
 
-    
-
 
     const envarSolicitud = async(metodo, parametros) => {
-        await axios({ method: metodo, url: url, data:parametros}).then(function(respuesta){
-            var tipo = respuesta.data[0];
-            var msj = respuesta.data[1];
-            show_alerta (msj,tipo);
-            if(tipo === 'success') {
-                document.getElementById('btnCerrar').click();
-                getClient();
-            }
+        
+        await axios({ method: metodo, url: url, data:parametros}).then(function(){
+            show_alerta ("Cliente guardado",'success');            
+            document.getElementById('btnCerrar').click();
+            getClient();
+            
         })
         .catch(function(error) {
-        show_alerta('Error en la solicitud', 'error');
-        console.log(error);
-    });
+            show_alerta('Error en la solicitud', 'error');
+            console.log(error);
+        });
     }
     
     const deleteClient = async (id, firstName) => {
@@ -120,6 +124,34 @@ export const FormClient = () => {
             console.log(error);
         }
     };
+
+    const updateClient = async (id, clientData) => {
+        const MySwal = withReactContent(Swal);
+
+        const result = await MySwal.fire({
+            title: '¿Seguro de actualizar los datos del cliente?',
+            icon: 'question',
+            text: 'Los cambios se guardarán de forma permanente',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, actualizar',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (!result.isConfirmed) {
+            show_alerta('Actualización cancelada', 'info');
+            return;
+        }
+
+        try {
+            console.log(url,id ,clientData)
+            await axios.patch(`${url}${id}`, clientData);
+            show_alerta('Cliente actualizado correctamente', 'success');
+            getClient();
+        } catch (error) {
+            show_alerta('Error al actualizar cliente', 'error');
+            console.error(error);
+        }
+};
 
     return (
     <div className='App'>
@@ -180,10 +212,10 @@ export const FormClient = () => {
                         <div className="modal-header">
                             <label className='h5'>{title}</label>
                             <button type='button' className='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
-                         </div>
+                         </div>                                                
                         <div className="modal-body">
                             <input type='hidden' id='id'></input>
-                            <div className='input-group mb-3'>
+                            <div className='input-group mb-3'>                                
                                 <span className="input-group-text"><i className='fa-solid fa-person'></i></span>
                                 <input type='text' id="firstName" className="form-control" placeholder="Nombre" value={firstName}
                                 onChange={(e)=> setFirstName(e.target.value)}></input>
@@ -201,7 +233,7 @@ export const FormClient = () => {
                             <input type='hidden' id='id'></input>
                             <div className='input-group mb-1'>
                                 <span className="input-group-text"><i className='fa-solid fa-phone'></i></span>
-                                <input type='text' id="phone" className="form-control" placeholder="Celular" value={phone}
+                                <input type='number' id="phone" className="form-control" placeholder="Celular" value={phone}
                                 onChange={(e)=> setPhone(e.target.value)}></input>
                             </div>
                         </div>

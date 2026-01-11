@@ -172,7 +172,7 @@ export const FormClient = () => {
                         <table className='table table-bordered'>
                             <thead>
                                 <tr>
-                                    <th>id</th>
+                                    <th>ID</th>
                                     <th>Nombres</th>
                                     <th>Apellidos</th>
                                     <th>Celular</th>
@@ -186,9 +186,9 @@ export const FormClient = () => {
                                         <td> {(client.id)} </td>
                                         <td> {(client.firstName)} </td>
                                         <td> {(client.lastName)} </td>
-                                        <td> {(client.phone)} </td>
-                                        <td> {(client.dateOfBirth)} </td>
-                                        <td> {(client.dateOfUpdate)} </td>
+                                        <td> {(client.phone)} </td>                                       
+                                        <td> {new Date(client.dateOfBirth).toLocaleDateString()} </td>
+                                        <td> {new Date(client.dateOfUpdate).toLocaleDateString()} </td>
                                         <td>
                                             <button onClick={()=>openModal(2,client.id,client.firstName,client.lastName,client.phone,client.dateOfBirth)}  className ="btn btn-warning" data-bs-toggle='modal' data-bs-target='#modalClients'>
                                                 <i className="fa-solid fa-edit"></i>

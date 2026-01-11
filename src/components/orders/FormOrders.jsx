@@ -15,7 +15,8 @@ const FormOrders = () =>{
         ]);
         const [orderId, setOrderId] = useState('');
         const [orderStatus, setOrderStatus] = useState('');
-
+        
+        const MySwal = withReactContent(Swal);
 
     useEffect(() => {
         fetchOrders();
@@ -131,6 +132,38 @@ const FormOrders = () =>{
         }
     };
 
+    const deleteOrder = async (orderId) => {
+
+        if (!orderId) {
+            show_alerta('Orden no válida', 'error');
+            return;
+        }
+
+        const result = await MySwal.fire({
+            title: '¿Seguro de eliminar la orden?',
+            text: 'Esta acción no se puede deshacer',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+    });
+
+        if (!result.isConfirmed) return;
+
+        try {
+            await axios.delete(`${url}${orderId}`);
+
+            fetchOrders();
+            show_alerta('Orden eliminada correctamente', 'success');
+
+        } catch (error) {
+            console.error(error.response?.data || error);
+            show_alerta('Error eliminando la orden', 'error');
+        }
+    };
+
+
+
     return(
        <div className='App'>
             <div className='container-fluid'>
@@ -174,7 +207,7 @@ const FormOrders = () =>{
                                                 <i className="fa-solid fa-edit"></i>
                                             </button>
                                             &nbsp;
-                                            <button  className='btn btn-danger'>
+                                            <button  className='btn btn-danger' onClick={() => deleteOrder(order.id)}>
                                                 <i className="fa-solid fa-trash"></i>
                                             </button>
                                         </td>
